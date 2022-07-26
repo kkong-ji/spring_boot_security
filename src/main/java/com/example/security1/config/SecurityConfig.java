@@ -38,11 +38,12 @@ public class SecurityConfig {
 				.csrf().disable()
 				.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
 				.and()
-				.formLogin().disable()
-				.httpBasic().disable()
-				.apply(new MyCustomDsl()) // 커스텀 필터 등록
+				.formLogin()
+				.loginPage("/loginForm")
+				.loginProcessingUrl("/login")
+				.defaultSuccessUrl("/")
 				.and()
-				.authorizeRequests(authroize -> authroize.antMatchers("/api/v1/user/**")
+				.authorizeRequests(authroize -> authroize.antMatchers("/api/v1/user/**") // 인증만 되면 들어갈 수 있는 주소
 						.access("hasRole('ROLE_USER') or hasRole('ROLE_MANAGER') or hasRole('ROLE_ADMIN')")
 						.antMatchers("/api/v1/manager/**")
 						.access("hasRole('ROLE_MANAGER') or hasRole('ROLE_ADMIN')")
@@ -51,14 +52,4 @@ public class SecurityConfig {
 						.anyRequest().permitAll())
 				.build();
 	}
-
-	public class MyCustomDsl extends AbstractHttpConfigurer<MyCustomDsl, HttpSecurity> {
-		@Override
-		public void configure(HttpSecurity http) throws Exception {
-			AuthenticationManager authenticationManager = http.getSharedObject(AuthenticationManager.class);
-			http
-					.addFilter(corsConfig.corsFilter());
-		}
-	}
-
 }
